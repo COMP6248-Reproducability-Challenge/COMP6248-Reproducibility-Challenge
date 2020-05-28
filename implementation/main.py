@@ -51,8 +51,11 @@ def train_model(net,loss_type, learning_rate, epochs=1000, gamma = 0.001,
                 loss = loss_mse                   
  
             if (loss_type=='dilate'):    
-                loss, loss_shape, loss_temporal = dilate_loss(target,outputs,alpha, gamma, device)             
-                  
+                loss, loss_shape, loss_temporal = dilate_loss(target,outputs,alpha, gamma, device)         
+
+            if (loss_type == 'dtw'):
+                loss_shape , loss, loss_temporal = dilate_loss(target,outputs,alpha, gamma, device)      
+
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()          
@@ -105,15 +108,23 @@ def eval_model(net,loader, gamma,verbose=1):
     print( ' Eval mse= ', np.array(losses_mse).mean() ,' dtw= ',np.array(losses_dtw).mean() ,' tdi= ', np.array(losses_tdi).mean()) 
 
 
-encoder = EncoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1, batch_size=batch_size).to(device)
-decoder = DecoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1,fc_units=16, output_size=1).to(device)
-net_gru_dilate = Net_GRU(encoder,decoder, N_output, device).to(device)
-train_model(net_gru_dilate,loss_type='dilate',learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50,verbose=1)
+# encoder = EncoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1, batch_size=batch_size).to(device)
+# decoder = DecoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1,fc_units=16, output_size=1).to(device)
+# net_gru_dilate = Net_GRU(encoder,decoder, N_output, device).to(device)
+# train_model(net_gru_dilate,loss_type='dilate',learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50,verbose=1)
 
-encoder = EncoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1, batch_size=batch_size).to(device)
-decoder = DecoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1,fc_units=16, output_size=1).to(device)
-net_gru_mse = Net_GRU(encoder,decoder, N_output, device).to(device)
-train_model(net_gru_mse,loss_type='mse',learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50,verbose=1)
+# encoder = EncoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1, batch_size=batch_size).to(device)
+# decoder = DecoderRNN(input_size=1, hidden_size=128, num_grulstm_layers=1,fc_units=16, output_size=1).to(device)
+# net_gru_mse = Net_GRU(encoder,decoder, N_output, device).to(device)
+# train_model(net_gru_mse,loss_type='mse',learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50,verbose=1)
+
+encoder = EncoderRNN(input_size=1, hidden_size=128,
+                     num_grulstm_layers=1, batch_size=batch_size).to(device)
+decoder = DecoderRNN(input_size=1, hidden_size=128,
+                     num_grulstm_layers=1, fc_units=16, output_size=1).to(device)
+net_gru_dtw = Net_GRU(encoder, decoder, N_output, device).to(device)
+train_model(net_gru_dtw, loss_type='dtw', learning_rate=0.001,
+            epochs=500, gamma=gamma, print_every=50, eval_every=50, verbose=1)
 
 # Visualize results
 gen_test = iter(testloader)
@@ -123,9 +134,9 @@ test_inputs  = torch.tensor(test_inputs, dtype=torch.float32).to(device)
 test_targets = torch.tensor(test_targets, dtype=torch.float32).to(device)
 criterion = torch.nn.MSELoss()
 
-nets = [net_gru_mse,net_gru_dilate]
+nets = [net_gru_dtw]
 
-for ind in range(1,51):
+for ind in range(12,13):
     plt.figure()
     plt.rcParams['figure.figsize'] = (17.0,5.0)  
     k = 1

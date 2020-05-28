@@ -1,4 +1,4 @@
-import numpy
+import numpy as np
 import torch
 from data.synthetic_dataset import create_synthetic_dataset, SyntheticDataset
 from models.mlp import MLP
@@ -104,17 +104,21 @@ def eval_model(net, loader, gamma, verbose=1):
         loss_dtw = loss_dtw / batch_size
         loss_tdi = loss_tdi / batch_size
 
-        # print statistics
+        # print statistics 
         losses_mse.append(loss_mse.item())
         losses_dtw.append(loss_dtw)
         losses_tdi.append(loss_tdi)
 
+    print(' Eval mse= ', np.array(losses_mse).mean(), ' dtw= ', np.array(
+        losses_dtw).mean(), ' tdi= ', np.array(losses_tdi).mean())
 
-net_mlp_dilate = MLP(input_size=1, hidden_size=128, output_size=1).to(device)
-train_model(net_mlp_dilate, loss_type='dilate', learning_rate=0.001, epochs=500, gamma=gamma, print_every=10, eval_every=50, verbose=1)
 
-net_mlp_mse= MLP(input_size=1, hidden_size=128, output_size=1).to(device)
-train_model(net_mlp_mse, loss_type='mse', learning_rate=0.001, epochs=500, gamma=gamma, print_every=10, eval_every=50, verbose=1)
+
+net_mlp_dilate = MLP(input_size=1, hidden_size=128, fc_units=16, output_size=1, target_length=N_output, device=device).to(device)
+train_model(net_mlp_dilate, loss_type='dilate', learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50, verbose=1)
+
+net_mlp_mse = MLP(input_size=1, hidden_size=128, fc_units=16, output_size=1, target_length=N_output, device=device).to(device)
+train_model(net_mlp_mse, loss_type='mse', learning_rate=0.001, epochs=500, gamma=gamma, print_every=50, eval_every=50, verbose=1)
 
 # Visualize results
 gen_test = iter(testloader)
@@ -122,14 +126,19 @@ test_inputs, test_targets, breaks = next(gen_test)
 
 test_inputs = torch.tensor(test_inputs, dtype=torch.float32).to(device)
 test_targets = torch.tensor(test_targets, dtype=torch.float32).to(device)
+batch_size, N_output = test_targets.shape[0:2]
 criterion = torch.nn.MSELoss()
 
-nets = [net_mlp_dilate]
+nets = [net_mlp_dilate, net_mlp_mse]
 
-for ind in range(1, 51):
+for ind in range(12, 13):
     plt.figure()
     plt.rcParams['figure.figsize'] = (17.0, 5.0)
     k = 1
+
+    losses_mse = []
+    losses_dtw = []
+    losses_tdi = []
 
     for net in nets:
         pred = net(test_inputs).to(device)
