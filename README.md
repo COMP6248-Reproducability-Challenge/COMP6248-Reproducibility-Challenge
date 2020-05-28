@@ -1,5 +1,5 @@
 # COMP6248-Reproducability-Challenge
-Navigate to different branches for different DILATE implementation on different datasets (synthetic dataset, wafer and traffic dataset).
+Navigate to different branches for different DILATE implementation on different datasets (synthetic dataset, wafer and traffic dataset). Report is found in the master branch
 
 ## Initialise Conda or Virtual Environment
 
