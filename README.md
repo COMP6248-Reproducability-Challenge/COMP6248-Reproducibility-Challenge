@@ -1,4 +1,4 @@
-# COMP6248-Reproducability-Challenge
+# SHAPE AND TIME DISTORTION LOSS FOR TRAIN- ING DEEP TIME SERIES FORECASTING MODELS
 Navigate to different branches for different DILATE implementation on different datasets (synthetic dataset, wafer and traffic dataset). Report is found in the master branch
 
 ## Initialise Conda or Virtual Environment
